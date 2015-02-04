@@ -2,19 +2,24 @@
 
 # writes xml data to writer_out.xml
 
+import xml.etree.cElementTree
 
 class builder(object):
     
     def pyramiduilder(self):
+
         o = 70
-        for _ in xrange(120):
+        for _ in xrange(20):
             a = random.randint(-o, o)  # x position of the pyramid
             b = random.randint(-o, o)  # z position of the pyramid
-            c = -1  # base of the pyramid
-            h = random.randint(1, 6)  # height of the pyramid
-            s = random.randint(3, 5)  # 2 * s is the side length of the hill
+            c = random.randint(1,10)  # base of the pyramid
+            s = random.randint(3, 6)  # 2 * s is the side length of the hill
+            _h = random.randint(2,8)  # height interval btween s_count += d
+            h = s*_h
             s_count = 1
             d = 1  # how quickly to taper off the hills
+
+            
             t = random.choice([GRASS, SAND, BRICK])
             for y in xrange(c, c + h):
                 for x in xrange(a - s_count, a + s_count + 1):
@@ -24,9 +29,10 @@ class builder(object):
                         if (x - 0) ** 2 + (z - 0) ** 2 < 7 ** 2:
                             continue
                         self.add_block((x, y, z), t, immediate=False)
-                s_count += d  # decrement side length so hills taper off
-        
-        
+                if y%_h == 0:
+                    s_count += d  # incriment side length so hills taper off
+                    d += random.randint(0,2)  # add accel
+ 
         
         
         
