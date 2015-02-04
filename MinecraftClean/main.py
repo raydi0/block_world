@@ -16,9 +16,8 @@ SECTOR_SIZE = 16
 WALKING_SPEED = 5
 FLYING_SPEED = 15
 
-GRAVITY = 10.0 # Default 20.0
-MAX_JUMP_HEIGHT = 6.0 # Default 1.0
-
+GRAVITY = 20.0
+MAX_JUMP_HEIGHT = 1.0 # About the height of a block.
 # To derive the formula for calculating jump speed, first solve
 #    v_t = v_0 + a * t
 # for the time at which you achieve maximum height, where a is the acceleration
@@ -26,7 +25,6 @@ MAX_JUMP_HEIGHT = 6.0 # Default 1.0
 #    t = - v_0 / a
 # Use t and the desired MAX_JUMP_HEIGHT to solve for v_0 (jump speed) in
 #    s = s_0 + v_0 * t + (a * t^2) / 2
-
 JUMP_SPEED = math.sqrt(2 * GRAVITY * MAX_JUMP_HEIGHT)
 TERMINAL_VELOCITY = 50
 
@@ -168,60 +166,25 @@ class Model(object):
                     for dy in xrange(-2, 3):
                         self.add_block((x, y + dy, z), STONE, immediate=False)
 
-
-## attempt 1
-        o = 70
-        for _ in xrange(20):
-            a = random.randint(-o, o)  # x position of the pyramid
-            b = random.randint(-o, o)  # z position of the pyramid
-            c = random.randint(1,10)  # base of the pyramid
-            s = random.randint(3, 6)  # 2 * s is the side length of the hill
-            _h = random.randint(2,8)  # height interval btween s_count += d
-            h = s*_h
-            s_count = 1
+        # generate the hills randomly
+        o = n - 10
+        for _ in xrange(120):
+            a = random.randint(-o, o)  # x position of the hill
+            b = random.randint(-o, o)  # z position of the hill
+            c = -1  # base of the hill
+            h = random.randint(1, 6)  # height of the hill
+            s = random.randint(4, 8)  # 2 * s is the side length of the hill
             d = 1  # how quickly to taper off the hills
-
-            
             t = random.choice([GRASS, SAND, BRICK])
             for y in xrange(c, c + h):
-                for x in xrange(a - s_count, a + s_count + 1):
-                    for z in xrange(b - s_count, b + s_count + 1):
-                        if (x - a) ** 2 + (z - b) ** 2 > (s_count + 1) ** 2:
+                for x in xrange(a - s, a + s + 1):
+                    for z in xrange(b - s, b + s + 1):
+                        if (x - a) ** 2 + (z - b) ** 2 > (s + 1) ** 2:
                             continue
-                        if (x - 0) ** 2 + (z - 0) ** 2 < 7 ** 2:
+                        if (x - 0) ** 2 + (z - 0) ** 2 < 5 ** 2:
                             continue
                         self.add_block((x, y, z), t, immediate=False)
-                if y%_h == 0:
-                    s_count += d  # incriment side length so hills taper off
-                    d += random.randint(0,2)  # add accel
-
-
-
-
-
-
-
-        ## generate skylands on top of hills?
-        ## generate the hills randomly (+ skylands on top of hills)
-        #o = n - 10
-        #for _ in xrange(120):
-        #    a = random.randint(-o, o)  # x position of the hill
-        #    b = random.randint(-o, o)  # z position of the hill
-        #    c = -1  # base of the hill
-        #    h = random.randint(1, 6)  # height of the hill
-        #    s = random.randint(4, 8)  # 2 * s is the side length of the hill
-        #    d = 1  # how quickly to taper off the hills
-        #    t = random.choice([GRASS, SAND, BRICK])
-        #    for y in xrange(c, c + h):
-        #        for x in xrange(a - s, a + s + 1):
-        #            for z in xrange(b - s, b + s + 1):
-        #                if (x - a) ** 2 + (z - b) ** 2 > (s + 1) ** 2:
-        #                    continue
-        #                if (x - 0) ** 2 + (z - 0) ** 2 < 5 ** 2:
-        #                    continue
-        #                self.add_block((x, y, z), t, immediate=False)
-        #        s -= d  # decrement side length so hills taper off
-            
+                s -= d  # decrement side lenth so hills taper off
 
     def hit_test(self, position, vector, max_distance=8):
         """ Line of sight search from current position. If a block is
