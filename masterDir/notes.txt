@@ -1,0 +1,6 @@
+
+
+###  Write a python script to write the base xml [xml_writer.py]
+
+
+### modify main.py _initialize to take .xml to generate world
