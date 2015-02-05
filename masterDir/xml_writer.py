@@ -2,43 +2,15 @@
 
 # writes xml data to writer_out.xml
 
-import xml.etree.cElementTree
+import xml.etree.ElementTree as ET
 
 class builder(object):
     
-    def pyramiduilder(self):
 
-        o = 70
-        for _ in xrange(20):
-            a = random.randint(-o, o)  # x position of the pyramid
-            b = random.randint(-o, o)  # z position of the pyramid
-            c = random.randint(1,10)  # base of the pyramid
-            s = random.randint(3, 6)  # 2 * s is the side length of the hill
-            _h = random.randint(2,8)  # height interval btween s_count += d
-            h = s*_h
-            s_count = 1
-            d = 1  # how quickly to taper off the hills
-
-            
-            t = random.choice([GRASS, SAND, BRICK])
-            for y in xrange(c, c + h):
-                for x in xrange(a - s_count, a + s_count + 1):
-                    for z in xrange(b - s_count, b + s_count + 1):
-                        if (x - a) ** 2 + (z - b) ** 2 > (s_count + 1) ** 2:
-                            continue
-                        if (x - 0) ** 2 + (z - 0) ** 2 < 7 ** 2:
-                            continue
-                        self.add_block((x, y, z), t, immediate=False)
-                if y%_h == 0:
-                    s_count += d  # incriment side length so hills taper off
-                    d += random.randint(0,2)  # add accel
- 
+#    def xmlReader(self):
+#        tree = ET.parse('practice.xml')
+#        root = tree.getroot()
         
-        
-        
-        
-
-
 
         #o = n - 10
         #for _ in xrange(120):
@@ -80,16 +52,3 @@ class builder(object):
     </BLOCK>
 </BLOCKWORLD>
 '''
-
-
-
-
-
-
-
-
-
-
-
-
-
