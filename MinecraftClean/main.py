@@ -30,6 +30,7 @@ TERMINAL_VELOCITY = 50
 
 PLAYER_HEIGHT = 2
 
+
 def cube_vertices(x, y, z, n):
     """ Return the vertices of the cube at position x, y, z with size 2*n.
 
@@ -74,6 +75,66 @@ GRASS = tex_coords((1, 0), (0, 1), (0, 0))
 SAND = tex_coords((1, 1), (1, 1), (1, 1))
 BRICK = tex_coords((2, 0), (2, 0), (2, 0))
 STONE = tex_coords((2, 1), (2, 1), (2, 1))
+
+#ADDED CODE FROM XANDER:
+import xml.etree.ElementTree as ET
+
+#parse xml code from file in same directory
+
+BLOCKTREE = ET.parse('worlddata.xml')
+ROOT = BLOCKTREE.getroot()
+
+#list to match up texture data with string representations in tuples
+#used in recordBlock
+TextureList = [(GRASS,'GRASS'), (SAND,'SAND'), (BRICK,'BRICK'), (STONE,'STONE')]
+
+def recordBlock(position, texture):
+    '''record to the xml object
+    a new block
+    
+    Parameters
+        ----------
+        position : tuple of len 3
+            The (x, y, z) position of the block to add.
+        ---------
+        Type: a string representing the type of block
+            "GRASS SAND BRICK STONE"
+    '''
+    
+    #make the into a dictionary
+    locationDict = {'X':str(position[0]), 'Y':str(position[1]), 'Z':str(position[2])}
+    #add a child to the current element
+    #with a tag of location dict
+    newElement = ET.Element("BLOCK", locationDict)
+    
+    #make an element with the tag "type"
+    childType = ET.Element("TYPE")
+    
+    #set the text of the elemnt to the input type
+    for tup in TextureList:
+        if tup[0] == texture:     
+            childType.text = tup[1]
+    
+    #make the element the child of the root
+    newElement.append(childType)
+    
+    #make an newElement a child of root
+    ROOT.append(newElement)
+
+def eraseBlock(position):
+    '''find the a block in a global xml object and delete it'''
+    locationDict = {'X':str(position[0]), 'Y':str(position[1]), 'Z':str(position[2])}
+    for child in ROOT:
+        if cmp(child.attrib, locationDict):
+            ROOT.remove(child)
+
+def saveWorld(inputDict):
+    #self.world is the dictionary that stores position:texture
+    for key in inputDict:
+        recordBlock(key, inputDict[key])
+    
+    BLOCKTREE.write('outputtree.xml')
+    
 
 FACES = [
     ( 0, 1, 0),
@@ -166,26 +227,27 @@ class Model(object):
                     for dy in xrange(-2, 3):
                         self.add_block((x, y + dy, z), STONE, immediate=False)
 
-        # generate the hills randomly
-        o = n - 10
-        for _ in xrange(120):
-            a = random.randint(-o, o)  # x position of the hill
-            b = random.randint(-o, o)  # z position of the hill
-            c = -1  # base of the hill
-            h = random.randint(1, 6)  # height of the hill
-            s = random.randint(4, 8)  # 2 * s is the side length of the hill
-            d = 1  # how quickly to taper off the hills
-            t = random.choice([GRASS, SAND, BRICK])
-            for y in xrange(c, c + h):
-                for x in xrange(a - s, a + s + 1):
-                    for z in xrange(b - s, b + s + 1):
-                        if (x - a) ** 2 + (z - b) ** 2 > (s + 1) ** 2:
-                            continue
-                        if (x - 0) ** 2 + (z - 0) ** 2 < 5 ** 2:
-                            continue
-                        self.add_block((x, y, z), t, immediate=False)
-                s -= d  # decrement side lenth so hills taper off
-
+        ## generate the hills randomly
+        #o = n - 10
+        #for _ in xrange(120):
+        #    a = random.randint(-o, o)  # x position of the hill
+        #    b = random.randint(-o, o)  # z position of the hill
+        #    c = -1  # base of the hill
+        #    h = random.randint(1, 6)  # height of the hill
+        #    s = random.randint(4, 8)  # 2 * s is the side length of the hill
+        #    d = 1  # how quickly to taper off the hills
+        #    t = random.choice([GRASS, SAND, BRICK])
+        #    for y in xrange(c, c + h):
+        #        for x in xrange(a - s, a + s + 1):
+        #            for z in xrange(b - s, b + s + 1):
+        #                if (x - a) ** 2 + (z - b) ** 2 > (s + 1) ** 2:
+        #                    continue
+        #                if (x - 0) ** 2 + (z - 0) ** 2 < 5 ** 2:
+        #                    continue
+        #                self.add_block((x, y, z), t, immediate=False)
+        #        s -= d  # decrement side length so hills taper off
+        
+    
     def hit_test(self, position, vector, max_distance=8):
         """ Line of sight search from current position. If a block is
         intersected it is returned, along with the block previously in the line
@@ -238,6 +300,9 @@ class Model(object):
             Whether or not to draw the block immediately.
 
         """
+        #xander's code
+        #recordBlock(position, texture)
+
         if position in self.world:
             self.remove_block(position, immediate)
         self.world[position] = texture
@@ -258,6 +323,10 @@ class Model(object):
             Whether or not to immediately remove block from canvas.
 
         """
+        #xander's code
+        #erase th entry for this block in the xml file
+        #eraseBlock(position)
+        
         del self.world[position]
         self.sectors[sectorize(position)].remove(position)
         if immediate:
@@ -714,6 +783,10 @@ class Window(pyglet.window.Window):
         """
         if symbol == key.W:
             self.strafe[0] -= 1
+        #from Xander:
+        if symbol == key.O:
+            saveWorld(self.model.world)
+        #end Xander
         elif symbol == key.S:
             self.strafe[0] += 1
         elif symbol == key.A:

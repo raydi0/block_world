@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+ <BLOCKWORLD>
+    <BLOCK Y = '20' X = '30' Z = '73'>
+        <TYPE>GRASS</TYPE>
+    </BLOCK>
+ </BLOCKWORLD>
