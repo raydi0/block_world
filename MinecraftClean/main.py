@@ -16,6 +16,9 @@ SECTOR_SIZE = 16
 WALKING_SPEED = 5
 FLYING_SPEED = 15
 
+#added as part of autoblock mod
+LASTPOSITION = ()
+
 GRAVITY = 20.0
 MAX_JUMP_HEIGHT = 1.0 # About the height of a block.
 # To derive the formula for calculating jump speed, first solve
@@ -84,6 +87,9 @@ import xml.etree.ElementTree as ET
 BLOCKTREE = ET.parse('worlddata.xml')
 ROOT = BLOCKTREE.getroot()
 
+
+
+
 #list to match up texture data with string representations in tuples
 #used in recordBlock
 TextureList = [(GRASS,'GRASS'), (SAND,'SAND'), (BRICK,'BRICK'), (STONE,'STONE')]
@@ -134,6 +140,10 @@ def saveWorld(inputDict):
         recordBlock(key, inputDict[key])
     
     BLOCKTREE.write('outputtree.xml')
+
+
+            
+        
     
 
 FACES = [
@@ -209,24 +219,27 @@ class Model(object):
         self.queue = deque()
 
         self._initialize()
+    
 
+    
+    
     def _initialize(self):
         """ Initialize the world by placing all the blocks.
 
         """
-        n = 80  # 1/2 width and height of world
-        s = 1  # step size
-        y = 0  # initial y height
-        for x in xrange(-n, n + 1, s):
-            for z in xrange(-n, n + 1, s):
-                # create a layer stone an grass everywhere.
-                self.add_block((x, y - 2, z), GRASS, immediate=False)
-                self.add_block((x, y - 3, z), STONE, immediate=False)
-                if x in (-n, n) or z in (-n, n):
-                    # create outer walls.
-                    for dy in xrange(-2, 3):
-                        self.add_block((x, y + dy, z), STONE, immediate=False)
-
+        #n = 80  # 1/2 width and height of world
+        #s = 1  # step size
+        #y = 0  # initial y height
+        #for x in xrange(-n, n + 1, s):
+        #    for z in xrange(-n, n + 1, s):
+        #        # create a layer stone an grass everywhere.
+        #        self.add_block((x, y - 2, z), GRASS, immediate=False)
+        #        self.add_block((x, y - 3, z), STONE, immediate=False)
+        #        if x in (-n, n) or z in (-n, n):
+        #            # create outer walls.
+        #            for dy in xrange(-2, 3):
+        #                self.add_block((x, y + dy, z), STONE, immediate=False)
+        
         ## generate the hills randomly
         #o = n - 10
         #for _ in xrange(120):
@@ -246,7 +259,21 @@ class Model(object):
         #                    continue
         #                self.add_block((x, y, z), t, immediate=False)
         #        s -= d  # decrement side length so hills taper off
-        
+        #create a tree to represent the xml code of the template world
+        templatetree = ET.parse('outputtree.xml')
+    
+        #get the root of the tree
+        root = templatetree.getroot()
+        position = ()
+        blockTexture = ()
+        #iterate through children of root
+        for Block in root:
+            #create a tuple to represent position of the block
+            position = (int(Block.attrib['X']), int(Block.attrib['Y']), int(Block.attrib['Z'])) 
+            for item in TextureList:   
+                if Block[0].text in item[1]:
+                    blockTexture = item[0]
+            self.add_block(position, blockTexture, immediate=True)
     
     def hit_test(self, position, vector, max_distance=8):
         """ Line of sight search from current position. If a block is
@@ -323,9 +350,6 @@ class Model(object):
             Whether or not to immediately remove block from canvas.
 
         """
-        #xander's code
-        #erase th entry for this block in the xml file
-        #eraseBlock(position)
         
         del self.world[position]
         self.sectors[sectorize(position)].remove(position)
@@ -495,7 +519,7 @@ class Model(object):
 
 
 class Window(pyglet.window.Window):
-
+    
     def __init__(self, *args, **kwargs):
         super(Window, self).__init__(*args, **kwargs)
 
@@ -552,7 +576,7 @@ class Window(pyglet.window.Window):
         self.label = pyglet.text.Label('', font_name='Arial', font_size=18,
             x=10, y=self.height - 10, anchor_x='left', anchor_y='top',
             color=(0, 0, 0, 255))
-
+        
         # This call schedules the `update()` method to be called
         # TICKS_PER_SEC. This is the main game event loop.
         pyglet.clock.schedule_interval(self.update, 1.0 / TICKS_PER_SEC)
@@ -631,6 +655,13 @@ class Window(pyglet.window.Window):
             The change in time since the last call.
 
         """
+        global LASTPOSITION
+        
+        blockPos = (self.position[0], self.position[1] + 5, self.position[2] + 5)
+        if LASTPOSITION:
+            self.model.remove_block(normalize(LASTPOSITION))
+        self.model.add_block(normalize(blockPos), GRASS, immediate = True)
+        LASTPOSITION = (normalize(blockPos))
         self.model.process_queue()
         sector = sectorize(self.position)
         if sector != self.sector:
@@ -786,6 +817,9 @@ class Window(pyglet.window.Window):
         #from Xander:
         if symbol == key.O:
             saveWorld(self.model.world)
+            
+        if symbol == key.Q:
+            LASTPOSITION = ()
         #end Xander
         elif symbol == key.S:
             self.strafe[0] += 1
